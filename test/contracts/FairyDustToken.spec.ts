@@ -4,26 +4,26 @@ import {solidity} from "ethereum-waffle";
 import {ethers} from "hardhat";
 import {BigNumber, BigNumberish, ContractFactory, Signer} from "ethers";
 
-import {Alchemist} from "../../types/Alchemist";
+import {Fairydust} from "../../types/Fairydust";
 import { StakingPools } from "../../types/StakingPools";
 import { Erc20Mock } from "../../types/Erc20Mock";
-import {AlchemixToken} from "../../types/AlchemixToken";
+import {FairyDustToken} from "../../types/FairyDustToken";
 
 chai.use(solidity);
 chai.use(chaiSubset);
 
 const {expect} = chai;
 
-let AlchemixTokenFactory: ContractFactory;
+let FairyDustTokenFactory: ContractFactory;
 
-describe("AlchemixToken", () => {
+describe("FairyDustToken", () => {
   let deployer: Signer;
   let signers: Signer[];
 
-  let token: AlchemixToken;
+  let token: FairyDustToken;
 
   before(async () => {
-    AlchemixTokenFactory = await ethers.getContractFactory("AlchemixToken");
+    FairyDustTokenFactory = await ethers.getContractFactory("FairyDustToken");
   });
 
   beforeEach(async () => {
@@ -31,7 +31,7 @@ describe("AlchemixToken", () => {
   });
 
   beforeEach(async () => {
-    token = await AlchemixTokenFactory.deploy() as AlchemixToken;
+    token = await FairyDustTokenFactory.deploy() as FairyDustToken;
   });
 
   it("grants the admin role to the deployer", async () => {
@@ -53,7 +53,7 @@ describe("AlchemixToken", () => {
 
       it("reverts", async () => {
         expect(token.mint(await recipient.getAddress(), 1))
-          .revertedWith("AlchemixToken: only minter");
+          .revertedWith("FairyDustToken: only minter");
       });
     });
 

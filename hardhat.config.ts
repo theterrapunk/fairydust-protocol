@@ -14,18 +14,18 @@ export default {
     newGovernance: 0,
     user: 0,
     dai: {
-      1: '0x6B175474E89094C44Da98b954EedeAC495271d0F', //mainnet dai address
-      1337: '0x6B175474E89094C44Da98b954EedeAC495271d0F', //mainnet dai address
-      3: '0xad6d458402f60fd3bd25163575031acdce07538d'
+      1: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', //mainnet bsc CAKE address
+      1337: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', //mainnet bsc CAKE address
+      3: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82' //weird DAI clone? wtf is this? [changed to CAKE address]
     },
-    yearnVault: {
-      1: '0x19D3364A399d251E894aC732651be8B0E4e85001', // mainnet yearn daivault address
-      1337: '0x19D3364A399d251E894aC732651be8B0E4e85001', // mainnet yearn daivault address
-      3: '0xdbfb15bc9beaaacda989ce3a6864af262166ac06'
+    pancakePool: {
+      1: '0xa80240Eb5d7E05d3F250cF000eEc0891d00b51CC', // mainnet PCS autocakepool address
+      1337: '0xa80240Eb5d7E05d3F250cF000eEc0891d00b51CC', // mainnet PCS autocakepool address
+      3: '0xdbfb15bc9beaaacda989ce3a6864af262166ac06' //what is this??
     },
     linkOracleAddress: {
-      1: '0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9',
-      1337: '0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9'
+      1: '0xB6064eD41d4f67e353768aA239cA86f4F73665a1', // cake/usd chainlink price feed address
+      1337: '0xB6064eD41d4f67e353768aA239cA86f4F73665a1'
     }
   },
   networks: {
@@ -37,7 +37,18 @@ export default {
       chainId: 1337,
       allowUnlimitedContractSize: false,
       blockGasLimit: 25000000
-    }
+    },
+    testnet: {
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      chainId: 97,
+      gasPrice: 20000000000,
+      accounts: {mnemonic: process.env.MNEMONIC}
+    },
+    mainnet: {
+      url: "https://bsc-dataseed.binance.org/",
+      chainId: 56,
+      gasPrice: 20000000000,
+      accounts: {mnemonic: process.env.MNEMONIC}
   },
   solidity: {
     version: "0.6.12",
@@ -52,4 +63,5 @@ export default {
     outDir: "types",
     target: "ethers-v5"
   },
+},
 };

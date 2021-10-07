@@ -6,21 +6,32 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/IERC20Burnable.sol";
 import {YearnVaultAdapterWithIndirection} from "./adapters/YearnVaultAdapterWithIndirection.sol";
-import {VaultWithIndirection} from "./libraries/alchemist/VaultWithIndirection.sol";
+import {VaultWithIndirection} from "./libraries/fairydust/VaultWithIndirection.sol";
 import {ITransmuter} from "./interfaces/ITransmuter.sol";
 import {IWETH9} from "./interfaces/IWETH9.sol";
 
-//    ___    __        __                _               ___                              __         _ 
-//   / _ |  / / ____  / /  ___   __ _   (_) __ __       / _ \  ____ ___   ___ ___   ___  / /_  ___  (_)
-//  / __ | / / / __/ / _ \/ -_) /  ' \ / /  \ \ /      / ___/ / __// -_) (_-</ -_) / _ \/ __/ (_-< _
-// /_/ |_|/_/  \__/ /_//_/\__/ /_/_/_//_/  /_\_\      /_/    /_/   \__/ /___/\__/ /_//_/\__/ /___/(_)
+//     ______            _                             ____                    __                                                        __         
+//    / ____/  ____ _   (_)   _____   __  __          / __ \  __  __   _____  / /_           ____    _____  ___    _____  ___    ____   / /_   _____
+//   / /_     / __ `/  / /   / ___/  / / / /         / / / / / / / /  / ___/ / __/          / __ \  / ___/ / _ \  / ___/ / _ \  / __ \ / __/  / ___/
+//  / __/    / /_/ /  / /   / /     / /_/ /         / /_/ / / /_/ /  (__  ) / /_           / /_/ / / /    /  __/ (__  ) /  __/ / / / // /_   (__  ) 
+// /_/       \__,_/  /_/   /_/      \__, /         /_____/  \__,_/  /____/  \__/          / .___/ /_/     \___/ /____/  \___/ /_/ /_/ \__/  /____/  
+//                                 /____/                                                /_/                                                        
 //
-// .___________..______           ___      .__   __.      _______..___  ___.  __    __  .___________. _______ .______
-// |           ||   _  \         /   \     |  \ |  |     /       ||   \/   | |  |  |  | |           ||   ____||   _  \
-// `---|  |----`|  |_)  |       /  ^  \    |   \|  |    |   (----`|  \  /  | |  |  |  | `---|  |----`|  |__   |  |_)  |
-//     |  |     |      /       /  /_\  \   |  . `  |     \   \    |  |\/|  | |  |  |  |     |  |     |   __|  |      /
-//     |  |     |  |\  \----. /  _____  \  |  |\   | .----)   |   |  |  |  | |  `--'  |     |  |     |  |____ |  |\  \----.
-//     |__|     | _| `._____|/__/     \__\ |__| \__| |_______/    |__|  |__|  \______/      |__|     |_______|| _| `._____|
+//   /###           /                                                                                                                 
+//  /  ############/                                                                                                                  
+// /     #########                                                                                       #                            
+// #     /  #                                                                                           ##                            
+//  ##  /  ##                                                                                           ##                            
+//     /  ###         ###  /###       /###    ###  /###       /###    ### /### /###    ##   ####      ########    /##    ###  /###    
+//    ##   ##          ###/ #### /   / ###  /  ###/ #### /   / #### /  ##/ ###/ /##  /  ##    ###  / ########    / ###    ###/ #### / 
+//    ##   ##           ##   ###/   /   ###/    ##   ###/   ##  ###/    ##  ###/ ###/   ##     ###/     ##      /   ###    ##   ###/  
+//    ##   ##           ##         ##    ##     ##    ##   ####         ##   ##   ##    ##      ##      ##     ##    ###   ##         
+//    ##   ##           ##         ##    ##     ##    ##     ###        ##   ##   ##    ##      ##      ##     ########    ##         
+//     ##  ##           ##         ##    ##     ##    ##       ###      ##   ##   ##    ##      ##      ##     #######     ##         
+//      ## #      /     ##         ##    ##     ##    ##         ###    ##   ##   ##    ##      ##      ##     ##          ##         
+//       ###     /      ##         ##    /#     ##    ##    /###  ##    ##   ##   ##    ##      /#      ##     ####    /   ##         
+//        ######/       ###         ####/ ##    ###   ###  / #### /     ###  ###  ###    ######/ ##     ##      ######/    ###        
+//          ###          ###         ###   ##    ###   ###    ###/       ###  ###  ###    #####   ##     ##      #####      ###       
 /**
  * @dev Implementation of the {IERC20Burnable} interface.
  *
@@ -55,10 +66,10 @@ contract TransmuterEth is Context {
     address public constant ZERO_ADDRESS = address(0);
     uint256 public transmutationPeriod;
 
-    address public alToken;
+    address public fToken;
     address public token;
 
-    mapping(address => uint256) public depositedAlTokens;
+    mapping(address => uint256) public depositedfTokens;
     mapping(address => uint256) public tokensInBucket;
     mapping(address => uint256) public realisedTokens;
     mapping(address => uint256) public lastDividendPoints;
@@ -67,17 +78,17 @@ contract TransmuterEth is Context {
     mapping(uint256 => address) public userList;
     uint256 public nextUser;
 
-    uint256 public totalSupplyAltokens;
+    uint256 public totalSupplyfTokens;
     uint256 public buffer;
     uint256 public lastDepositBlock;
 
-    ///@dev values needed to calculate the distribution of base asset in proportion for alTokens staked
+    ///@dev values needed to calculate the distribution of base asset in proportion for fTokens staked
     uint256 public pointMultiplier = 10e18;
 
     uint256 public totalDividendPoints;
     uint256 public unclaimedDividends;
 
-    /// @dev alchemist addresses whitelisted
+    /// @dev Fairydust addresses whitelisted
     mapping (address => bool) public whiteList;
 
     /// @dev addresses whitelisted to run keepr jobs (harvest)
@@ -219,20 +230,20 @@ contract TransmuterEth is Context {
         uint256 fundsMigrated
     );
 
-    constructor(address _alToken, address _token, address _governance) public {
+    constructor(address _fToken, address _token, address _governance) public {
         require(_governance != ZERO_ADDRESS, "Transmuter: 0 gov");
         governance = _governance;
-        alToken = _alToken;
+        fToken = _fToken;
         token = _token;
         transmutationPeriod = 500000;
         minUserActionDelay = 1;
         pause = true;
     }
 
-    ///@return displays the user's share of the pooled alTokens.
+    ///@return displays the user's share of the pooled fTokens.
     function dividendsOwing(address account) public view returns (uint256) {
         uint256 newDividendPoints = totalDividendPoints.sub(lastDividendPoints[account]);
-        return depositedAlTokens[account].mul(newDividendPoints).div(pointMultiplier);
+        return depositedfTokens[account].mul(newDividendPoints).div(pointMultiplier);
     }
 
     /// @dev Checks that caller is not a eoa.
@@ -363,11 +374,11 @@ contract TransmuterEth is Context {
         emit TokenClaimed(sender, token, value);
     }
 
-    ///@dev Withdraws staked alTokens from the transmuter
+    ///@dev Withdraws staked fTokens from the transmuter
     ///
     /// This function reverts if you try to draw more tokens than you deposited
     ///
-    ///@param amount the amount of alTokens to unstake
+    ///@param amount the amount of fTokens to unstake
     function unstake(uint256 amount) 
         public 
         noContractAllowed() 
@@ -375,15 +386,15 @@ contract TransmuterEth is Context {
     {
         // by calling this function before transmuting you forfeit your gained allocation
         address sender = msg.sender;
-        require(depositedAlTokens[sender] >= amount,"Transmuter: unstake amount exceeds deposited amount");
-        depositedAlTokens[sender] = depositedAlTokens[sender].sub(amount);
-        totalSupplyAltokens = totalSupplyAltokens.sub(amount);
-        IERC20Burnable(alToken).safeTransfer(sender, amount);
+        require(depositedfTokens[sender] >= amount,"Transmuter: unstake amount exceeds deposited amount");
+        depositedfTokens[sender] = depositedfTokens[sender].sub(amount);
+        totalSupplyfTokens = totalSupplyfTokens.sub(amount);
+        IERC20Burnable(fToken).safeTransfer(sender, amount);
         emit AlUsdUnstaked(sender, amount);
     }
-    ///@dev Deposits alTokens into the transmuter 
+    ///@dev Deposits fTokens into the transmuter 
     ///
-    ///@param amount the amount of alTokens to stake
+    ///@param amount the amount of fTokens to stake
     function stake(uint256 amount)
         public
         noContractAllowed()
@@ -394,17 +405,17 @@ contract TransmuterEth is Context {
     {
         require(!pause, "emergency pause enabled");
 
-        // requires approval of AlToken first
+        // requires approval of fToken first
         address sender = msg.sender;
         //require tokens transferred in;
-        IERC20Burnable(alToken).safeTransferFrom(sender, address(this), amount);
-        totalSupplyAltokens = totalSupplyAltokens.add(amount);
-        depositedAlTokens[sender] = depositedAlTokens[sender].add(amount);
+        IERC20Burnable(fToken).safeTransferFrom(sender, address(this), amount);
+        totalSupplyfTokens = totalSupplyfTokens.add(amount);
+        depositedfTokens[sender] = depositedfTokens[sender].add(amount);
         emit AlUsdStaked(sender, amount);
     }
-    /// @dev Converts the staked alTokens to the base tokens in amount of the sum of pendingdivs and tokensInBucket
+    /// @dev Converts the staked fTokens to the base tokens in amount of the sum of pendingdivs and tokensInBucket
     ///
-    /// once the alToken has been converted, it is burned, and the base token becomes realisedTokens which can be recieved using claim()    
+    /// once the fToken has been converted, it is burned, and the base token becomes realisedTokens which can be recieved using claim()    
     ///
     /// reverts if there are no pendingdivs or tokensInBucket
     function transmute()
@@ -423,21 +434,21 @@ contract TransmuterEth is Context {
         tokensInBucket[sender] = 0;
 
         // check bucket overflow
-        if (pendingz > depositedAlTokens[sender]) {
-            diff = pendingz.sub(depositedAlTokens[sender]);
+        if (pendingz > depositedfTokens[sender]) {
+            diff = pendingz.sub(depositedfTokens[sender]);
 
             // remove overflow
-            pendingz = depositedAlTokens[sender];
+            pendingz = depositedfTokens[sender];
         }
 
-        // decrease altokens
-        depositedAlTokens[sender] = depositedAlTokens[sender].sub(pendingz);
+        // decrease fTokens
+        depositedfTokens[sender] = depositedfTokens[sender].sub(pendingz);
 
-        // BURN ALTOKENS
-        IERC20Burnable(alToken).burn(pendingz);
+        // BURN fTokenS
+        IERC20Burnable(fToken).burn(pendingz);
 
         // adjust total
-        totalSupplyAltokens = totalSupplyAltokens.sub(pendingz);
+        totalSupplyfTokens = totalSupplyfTokens.sub(pendingz);
 
         // reallocate overflow
         increaseAllocations(diff);
@@ -448,7 +459,7 @@ contract TransmuterEth is Context {
         emit Transmutation(sender, pendingz);
     }
 
-    /// @dev Executes transmute() on another account that has had more base tokens allocated to it than alTokens staked.
+    /// @dev Executes transmute() on another account that has had more base tokens allocated to it than fTokens staked.
     ///
     /// The caller of this function will have the surlus base tokens credited to their tokensInBucket balance, rewarding them for performing this action
     ///
@@ -468,7 +479,7 @@ contract TransmuterEth is Context {
         uint256 pendingz = tokensInBucket[toTransmute];
         // check restrictions
         require(
-            pendingz > depositedAlTokens[toTransmute],
+            pendingz > depositedfTokens[toTransmute],
             "Transmuter: !overflow"
         );
 
@@ -476,18 +487,18 @@ contract TransmuterEth is Context {
         tokensInBucket[toTransmute] = 0;
 
         // calculaate diffrence
-        uint256 diff = pendingz.sub(depositedAlTokens[toTransmute]);
+        uint256 diff = pendingz.sub(depositedfTokens[toTransmute]);
 
         // remove overflow
-        pendingz = depositedAlTokens[toTransmute];
+        pendingz = depositedfTokens[toTransmute];
 
-        // decrease altokens
-        depositedAlTokens[toTransmute] = 0;
+        // decrease fTokens
+        depositedfTokens[toTransmute] = 0;
 
-        // BURN ALTOKENS
-        IERC20Burnable(alToken).burn(pendingz);
+        // BURN fTokenS
+        IERC20Burnable(fToken).burn(pendingz);
         // adjust total
-        totalSupplyAltokens = totalSupplyAltokens.sub(pendingz);
+        totalSupplyfTokens = totalSupplyfTokens.sub(pendingz);
 
         // reallocate overflow
         tokensInBucket[msg.sender] = tokensInBucket[msg.sender].add(diff);
@@ -508,36 +519,36 @@ contract TransmuterEth is Context {
         emit ForcedTransmutation(msg.sender, toTransmute, value);
     }
 
-    /// @dev Transmutes and unstakes all alTokens
+    /// @dev Transmutes and unstakes all fTokens
     ///
     /// This function combines the transmute and unstake functions for ease of use
     function exit() public noContractAllowed() {
         transmute();
-        uint256 toWithdraw = depositedAlTokens[msg.sender];
+        uint256 toWithdraw = depositedfTokens[msg.sender];
         unstake(toWithdraw);
     }
 
     /// @dev Transmutes and claims all converted base tokens.
     ///
-    /// This function combines the transmute and claim functions while leaving your remaining alTokens staked.
+    /// This function combines the transmute and claim functions while leaving your remaining fTokens staked.
     function transmuteAndClaim(bool asEth) public noContractAllowed() {
         transmute();
         claim(asEth);
     }
 
-    /// @dev Transmutes, claims base tokens, and withdraws alTokens.
+    /// @dev Transmutes, claims base tokens, and withdraws fTokens.
     ///
-    /// This function helps users to exit the transmuter contract completely after converting their alTokens to the base pair.
+    /// This function helps users to exit the transmuter contract completely after converting their fTokens to the base pair.
     function transmuteClaimAndWithdraw(bool asEth) public noContractAllowed() {
         transmute();
         claim(asEth);
-        uint256 toWithdraw = depositedAlTokens[msg.sender];
+        uint256 toWithdraw = depositedfTokens[msg.sender];
         unstake(toWithdraw);
     }
 
-    /// @dev Distributes the base token proportionally to all alToken stakers.
+    /// @dev Distributes the base token proportionally to all fToken stakers.
     ///
-    /// This function is meant to be called by the Alchemist contract for when it is sending yield to the transmuter. 
+    /// This function is meant to be called by the Fairydust contract for when it is sending yield to the transmuter. 
     /// Anyone can call this and add funds, idk why they would do that though...
     ///
     /// @param origin the account that is sending the tokens to be distributed.
@@ -550,13 +561,13 @@ contract TransmuterEth is Context {
         emit Distribution(origin, amount);
     }
 
-    /// @dev Allocates the incoming yield proportionally to all alToken stakers.
+    /// @dev Allocates the incoming yield proportionally to all fToken stakers.
     ///
     /// @param amount the amount of base tokens to be distributed in the transmuter.
     function increaseAllocations(uint256 amount) internal {
-        if(totalSupplyAltokens > 0 && amount > 0) {
+        if(totalSupplyfTokens > 0 && amount > 0) {
             totalDividendPoints = totalDividendPoints.add(
-                amount.mul(pointMultiplier).div(totalSupplyAltokens)
+                amount.mul(pointMultiplier).div(totalSupplyfTokens)
             );
             unclaimedDividends = unclaimedDividends.add(amount);
         } else {
@@ -582,12 +593,12 @@ contract TransmuterEth is Context {
             uint256 realised
         )
     {
-        uint256 _depositedAl = depositedAlTokens[user];
+        uint256 _depositedAl = depositedfTokens[user];
         uint256 _toDistribute = buffer.mul(block.number.sub(lastDepositBlock)).div(transmutationPeriod);
         if(block.number.sub(lastDepositBlock) > transmutationPeriod){
             _toDistribute = buffer;
         }
-        uint256 _pendingdivs = _toDistribute.mul(depositedAlTokens[user]).div(totalSupplyAltokens);
+        uint256 _pendingdivs = _toDistribute.mul(depositedfTokens[user]).div(totalSupplyfTokens);
         uint256 _inbucket = tokensInBucket[user].add(dividendsOwing(user));
         uint256 _realised = realisedTokens[user];
         return (_depositedAl, _pendingdivs, _inbucket, _realised);
@@ -619,8 +630,8 @@ contract TransmuterEth is Context {
         }
         for (uint256 x = 0; x < delta; x += 1) {
             _theUserList[x] = userList[i];
-            _theUserData[y] = depositedAlTokens[userList[i]];
-            _theUserData[y + 1] = dividendsOwing(userList[i]).add(tokensInBucket[userList[i]]).add(_toDistribute.mul(depositedAlTokens[userList[i]]).div(totalSupplyAltokens));
+            _theUserData[y] = depositedfTokens[userList[i]];
+            _theUserData[y + 1] = dividendsOwing(userList[i]).add(tokensInBucket[userList[i]]).add(_toDistribute.mul(depositedfTokens[userList[i]]).div(totalSupplyfTokens));
             y += 2;
             i += 1;
         }
@@ -943,13 +954,13 @@ contract TransmuterEth is Context {
 
         // leave enough funds to service any pending transmutations
         uint256 totalFunds = IERC20Burnable(token).balanceOf(address(this));
-        uint256 migratableFunds = totalFunds.sub(totalSupplyAltokens, "not enough funds to service stakes");
+        uint256 migratableFunds = totalFunds.sub(totalSupplyfTokens, "not enough funds to service stakes");
         IERC20Burnable(token).approve(migrateTo, migratableFunds);
         ITransmuter(migrateTo).distribute(address(this), migratableFunds);
         emit MigrationComplete(migrateTo, migratableFunds);
     }
 
-    /// @dev Recover eth sent directly to the Alchemist
+    /// @dev Recover eth sent directly to the Fairydust
     ///
     /// only callable by governance
     function recoverLostFunds() external onlyGov() {

@@ -8,14 +8,14 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IDetailedERC20} from "./interfaces/IDetailedERC20.sol";
 
-/// @title AlToken
+/// @title fToken
 ///
-/// @dev This is the contract for the Alchemix utillity token usd.
+/// @dev This is the contract for the Fairy Dust utility token ETH.
 ///
 /// Initially, the contract deployer is given both the admin and minter role. This allows them to pre-mine tokens,
 /// transfer admin to a timelock contract, and lastly, grant the staking pools the minter role. After this is done,
 /// the deployer must revoke their admin role and minter role.
-contract AlEth is AccessControl, ERC20("Alchemix ETH", "alETH") {
+contract FdEth is AccessControl, ERC20("Fairy Dust ETH", "fETH") {
   using SafeERC20 for ERC20;
 
   /// @dev The identifier of the role which maintains other roles.
@@ -36,7 +36,7 @@ contract AlEth is AccessControl, ERC20("Alchemix ETH", "alETH") {
   /// @dev already minted amount per address to track the ceiling
   mapping (address => uint256) public hasMinted;
 
-  event AlchemistPaused(address alchemistAddress, bool isPaused);
+  event FairydustPaused(address fairydustAddress, bool isPaused);
   
   constructor() public {
     _setupRole(ADMIN_ROLE, msg.sender);
@@ -47,7 +47,7 @@ contract AlEth is AccessControl, ERC20("Alchemix ETH", "alETH") {
 
   /// @dev A modifier which checks if whitelisted for minting.
   modifier onlyWhitelisted() {
-    require(whiteList[msg.sender], "AlETH: Alchemist is not whitelisted");
+    require(whiteList[msg.sender], "fETH: Fairydust is not whitelisted");
     _;
   }
 
@@ -58,7 +58,7 @@ contract AlEth is AccessControl, ERC20("Alchemix ETH", "alETH") {
   /// @param _recipient the account to mint tokens to.
   /// @param _amount    the amount of tokens to mint.
   function mint(address _recipient, uint256 _amount) external onlyWhitelisted {
-    require(!paused[msg.sender], "AlETH: Alchemist is currently paused.");
+    require(!paused[msg.sender], "fETH: Fairydust is currently paused.");
     hasMinted[msg.sender] = hasMinted[msg.sender].add(_amount);
     _mint(_recipient, _amount);
   }
@@ -79,9 +79,9 @@ contract AlEth is AccessControl, ERC20("Alchemix ETH", "alETH") {
   }
 
   /// This function reverts if the caller does not have the sentinel role.
-  function pauseAlchemist(address _toPause, bool _state) external onlySentinel {
+  function pauseFairydust(address _toPause, bool _state) external onlySentinel {
     paused[_toPause] = _state;
-    AlchemistPaused(_toPause, _state);
+    FairydustPaused(_toPause, _state);
   }
   /// This function reverts if the caller does not have the admin role.
   ///
