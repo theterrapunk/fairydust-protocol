@@ -11,7 +11,7 @@ import {IDetailedERC20} from "./interfaces/IDetailedERC20.sol";
 
 /// @title fToken
 ///
-/// @dev This is the contract for the Fairy Dust utillity token usd.
+/// @dev This is the contract for the Fairy Dust utillity token CAKE equivalent.
 ///
 /// Initially, the contract deployer is given both the admin and minter role. This allows them to pre-mine tokens,
 /// transfer admin to a timelock contract, and lastly, grant the staking pools the minter role. After this is done,
