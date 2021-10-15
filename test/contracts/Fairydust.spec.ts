@@ -818,7 +818,7 @@ describe("Fairydust", () => {
         );
       });
 
-      context("is whitelisted", () => {
+      context("is whiltelisted", () => {
         beforeEach(async () => {
           await fUsd.connect(deployer).setWhitelist(Fairydust.address, true);
         });

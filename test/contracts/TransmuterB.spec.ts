@@ -11,6 +11,7 @@ import { Erc20Mock } from "../../types/Erc20Mock";
 import { getAddress, parseEther, formatEther } from "ethers/lib/utils";
 import { MAXIMUM_U256, ZERO_ADDRESS, mineBlocks } from "../utils/helpers";
 import { TransmuterB } from "../../types/TransmuterB";
+import { waitForTxConfirmation } from "../../utils/txUtils";
 import { SSL_OP_EPHEMERAL_RSA } from "constants";
 import { Transmuter } from "../../types/Transmuter";
 

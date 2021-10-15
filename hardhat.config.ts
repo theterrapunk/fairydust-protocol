@@ -2,8 +2,8 @@ import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-typechain";
 import "solidity-coverage";
-import "dotenv/config";
-import "hardhat-deploy";
+
+require('dotenv').config()
 
 export default {
   namedAccounts: {
@@ -18,7 +18,7 @@ export default {
       1337: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', //mainnet bsc CAKE address
       3: '0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82' //weird DAI clone? wtf is this? [changed to CAKE address]
     },
-    yearnVault: {
+    pancakePool: {
       1: '0xa80240Eb5d7E05d3F250cF000eEc0891d00b51CC', // mainnet PCS autocakepool address
       1337: '0xa80240Eb5d7E05d3F250cF000eEc0891d00b51CC', // mainnet PCS autocakepool address
       3: '0xdbfb15bc9beaaacda989ce3a6864af262166ac06' //what is this??
@@ -30,7 +30,7 @@ export default {
   },
   networks: {
     coverage: {
-      url: "http://localhost:8545",
+      url: "http://localhost:8555",
       gas: 20000000,
     },
     hardhat: {
@@ -50,7 +50,6 @@ export default {
       gasPrice: 20000000000,
       accounts: {mnemonic: process.env.MNEMONIC}
   },
-},
   solidity: {
     version: "0.6.12",
     settings: {
@@ -64,5 +63,5 @@ export default {
     outDir: "types",
     target: "ethers-v5"
   },
-
+},
 };

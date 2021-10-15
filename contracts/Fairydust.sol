@@ -20,7 +20,7 @@ import {Vault} from "./libraries/fairydust/Vault.sol";
 import "hardhat/console.sol";
 
 // ERC20,removing ERC20 from the fairydust
-// The Fairy Dust protocol is a fork of the Alchemix protocol https://github.com/alchemix-finance/alchemix-protocol 
+// The Fairydust protocol is a fork of the Alchemix protocol https://github.com/alchemix-finance/alchemix-protocol 
 //     ______            _                             ____                    __                                                        __         
 //    / ____/  ____ _   (_)   _____   __  __          / __ \  __  __   _____  / /_           ____    _____  ___    _____  ___    ____   / /_   _____
 //   / /_     / __ `/  / /   / ___/  / / / /         / / / / / / / /  / ___/ / __/          / __ \  / ___/ / _ \  / ___/ / _ \  / __ \ / __/  / ___/

@@ -1056,7 +1056,7 @@ describe("FairydustEth", () => {
         );
       });
 
-      context("is whitelisted", () => {
+      context("is whiltelisted", () => {
         beforeEach(async () => {
           await fEth.connect(deployer).setWhitelist(fairydust.address, true);
         });
